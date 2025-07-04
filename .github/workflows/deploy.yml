@@ -10,10 +10,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out the repo
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Como usas imagen pública nginx:alpine no hace falta login
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
@@ -21,4 +24,3 @@ jobs:
           app-name: devops-html-contenedor-julio2025
           slot-name: production
           images: nginx:alpine
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
