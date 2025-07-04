@@ -1,21 +1,35 @@
-- name: Login to Docker Hub
-  uses: docker/login-action@v2
-  with:
-    username: ${{ secrets.DOCKER_USERNAME }}
-    password: ${{ secrets.DOCKER_PASSWORD }}
+name: Build and deploy Docker app to Azure Web App
 
-- name: Build and push Docker image
-  run: |
-    docker build -t xoanabella/devops-html-julio2025:latest .
-    docker push xoanabella/devops-html-julio2025:latest
+on:
+  push:
+    branches:
+      - main
 
-- name: Deploy Docker container to Azure App Service
-  run: |
-    az webapp config container set \
-      --name devops-html-julio2025 \
-      --resource-group plan_formacon_devops \
-      --container-image-name xoanabella/devops-html-julio2025:latest
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
 
-- name: Restart App Service
-  run: |
-    az webapp restart --name devops-html-julio2025 --resource-group plan_formacon_devops
+    steps:
+    - name: Check out the repo
+      uses: actions/checkout@v3
+
+    - name: Log in to Azure Container Registry
+      uses: azure/docker-login@v1
+      with:
+        login-server: mcr.microsoft.com
+        username: ${{ secrets.AZURE_USERNAME }}
+        password: ${{ secrets.AZURE_PASSWORD }}
+
+    - name: Build and push Docker image
+      run: |
+        docker build -t nginx:alpine .
+        # Aquí si quieres subir la imagen a un registry la puedes pushear
+        # pero para Azure Web App con imagen pública no es necesario
+
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: devops-html-contenedor-julio2025
+        slot-name: production
+        images: nginx:alpine
+        publish-profile: ${{ secrets.AZURE_WEBAPP_
