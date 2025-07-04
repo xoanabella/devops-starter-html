@@ -1,26 +1,35 @@
-name: Build and Deploy to Azure Web App
+name: Deploy to Azure Web App with Docker
 
 on:
   push:
     branches:
-      - main
+      - main  # o la rama que uses
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Log in to Azure
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: tu-nombre-app
-          slot-name: production
-          package: .
+    - name: Build Docker image
+      run: |
+        docker build -t devops-html-julio2025 .
+
+    - name: Deploy Docker container to Azure App Service
+      run: |
+        az webapp config container set \
+          --name devops-html-julio2025 \
+          --resource-group plan_formacon_devops \
+          --docker-custom-image-name devops-html-julio2025 \
+          --docker-registry-server-url https://index.docker.io
+
+    - name: Restart App Service
+      run: |
+        az webapp restart --name devops-html-julio2025 --resource-group plan_formacon_devops
