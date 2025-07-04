@@ -1,4 +1,4 @@
-name: Build and deploy Docker app to Azure Web App
+name: Deploy Dockerfile to Azure Web App
 
 on:
   push:
@@ -10,17 +10,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Azure Login
+      - name: Login to Azure
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy to Azure Web App
+      - name: Build Docker image
+        run: docker build -t myapp:latest .
+
+      - name: Deploy to Azure Web App using Docker
         uses: azure/webapps-deploy@v2
         with:
           app-name: devops-html-contenedor-julio2025
-          slot-name: production
-          images: nginx:alpine
+          images: myapp:latest
